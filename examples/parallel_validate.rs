@@ -4,13 +4,13 @@
 use std::env;
 use std::fs::File;
 use std::mem;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
-use shakmaty::{CastlingMode, Chess, Position};
 use shakmaty::fen::Fen;
+use shakmaty::{CastlingMode, Chess, Position};
 
-use pgn_reader::{Visitor, Skip, BufferedReader, RawHeader, San, SanPlus};
+use pgn_reader::{BufferedReader, RawHeader, San, SanPlus, Skip, Visitor};
 
 struct Game {
     index: usize,
@@ -49,7 +49,7 @@ impl Validator {
                 pos: Chess::default(),
                 sans: Vec::new(),
                 success: true,
-            }
+            },
         }
     }
 }
@@ -67,19 +67,25 @@ impl Visitor for Validator {
             let fen = match Fen::from_ascii(value.as_bytes()) {
                 Ok(fen) => fen,
                 Err(err) => {
-                    eprintln!("invalid fen header in game {}: {} ({:?})", self.games, err, value);
+                    eprintln!(
+                        "invalid fen header in game {}: {} ({:?})",
+                        self.games, err, value
+                    );
                     self.game.success = false;
                     return;
-                },
+                }
             };
 
             self.game.pos = match fen.position(CastlingMode::Chess960) {
                 Ok(pos) => pos,
                 Err(err) => {
-                    eprintln!("illegal fen header in game {}: {} ({})", self.games, err, fen);
+                    eprintln!(
+                        "illegal fen header in game {}: {} ({})",
+                        self.games, err, fen
+                    );
                     self.game.success = false;
                     return;
-                },
+                }
             };
         }
     }
@@ -99,12 +105,15 @@ impl Visitor for Validator {
     }
 
     fn end_game(&mut self) -> Self::Result {
-        mem::replace(&mut self.game, Game {
-            index: self.games,
-            pos: Chess::default(),
-            sans: Vec::with_capacity(80),
-            success: true,
-        })
+        mem::replace(
+            &mut self.game,
+            Game {
+                index: self.games,
+                pos: Chess::default(),
+                sans: Vec::with_capacity(80),
+                success: true,
+            },
+        )
     }
 }
 
@@ -139,7 +148,8 @@ fn main() {
                     }
                 });
             }
-        }).unwrap();
+        })
+        .unwrap();
 
         let success = success.load(Ordering::SeqCst);
         println!("{}: {}", arg, if success { "success" } else { "errors" });
