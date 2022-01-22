@@ -513,6 +513,7 @@ impl AsRef<[u8]> for Buffer {
 pub struct BufferedReader<R> {
     inner: R,
     buffer: Buffer,
+    bytes_read: u64,
 }
 
 impl<T: AsRef<[u8]>> BufferedReader<Cursor<T>> {
@@ -549,6 +550,7 @@ impl<R: Read> BufferedReader<R> {
         let mut reader = BufferedReader {
             inner,
             buffer: Buffer::new(),
+            bytes_read: 0,
         };
 
         unsafe {
@@ -563,6 +565,10 @@ impl<R: Read> BufferedReader<R> {
         }
 
         reader
+    }
+
+    pub fn bytes_read(&self) -> u64 {
+        self.bytes_read
     }
 
     /// Read a single game, if any, and returns the result produced by the
@@ -654,6 +660,7 @@ impl<R: Read> ReadPgn for BufferedReader<R> {
         unsafe {
             self.buffer.inner.move_head(bytes as isize);
         }
+        self.bytes_read += bytes as u64
     }
 
     fn peek(&self) -> Option<u8> {
