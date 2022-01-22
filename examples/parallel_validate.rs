@@ -57,7 +57,7 @@ impl Validator {
 impl Visitor for Validator {
     type Result = Game;
 
-    fn begin_game(&mut self) {
+    fn begin_game(&mut self, _bytes_read: u64) {
         self.games += 1;
     }
 

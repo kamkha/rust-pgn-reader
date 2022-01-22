@@ -29,7 +29,7 @@ impl Validator {
 impl Visitor for Validator {
     type Result = bool;
 
-    fn begin_game(&mut self) {
+    fn begin_game(&mut self, _bytes_read: u64) {
         self.games += 1;
         self.pos = Chess::default();
         self.success = true;

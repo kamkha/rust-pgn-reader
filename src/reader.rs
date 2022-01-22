@@ -35,6 +35,8 @@ trait ReadPgn {
     /// bytes or all remaining bytes until the end of the source.
     fn fill_buffer_and_peek(&mut self) -> Result<Option<u8>, Self::Err>;
 
+    fn bytes_read(&self) -> u64;
+
     /// Returns the current buffer.
     fn buffer(&self) -> &[u8];
 
@@ -470,7 +472,7 @@ trait ReadPgn {
             return Ok(None);
         }
 
-        visitor.begin_game();
+        visitor.begin_game(self.bytes_read());
         visitor.begin_headers();
         self.read_headers(visitor)?;
         if let Skip(false) = visitor.end_headers() {
@@ -567,10 +569,6 @@ impl<R: Read> BufferedReader<R> {
         reader
     }
 
-    pub fn bytes_read(&self) -> u64 {
-        self.bytes_read
-    }
-
     /// Read a single game, if any, and returns the result produced by the
     /// visitor. Returns Ok(None) if the underlying reader is empty.
     ///
@@ -624,6 +622,10 @@ impl<R: Read> BufferedReader<R> {
 
 impl<R: Read> ReadPgn for BufferedReader<R> {
     type Err = io::Error;
+
+    fn bytes_read(&self) -> u64 {
+        self.bytes_read
+    }
 
     fn fill_buffer_and_peek(&mut self) -> io::Result<Option<u8>> {
         while self.buffer.inner.len() < MIN_BUFFER_SIZE {
